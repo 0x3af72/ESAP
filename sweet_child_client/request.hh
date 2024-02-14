@@ -1,5 +1,5 @@
 #include <iostream>
-#include <curl/curl.h>
+#include <mutex>
 
 #include "include/json.hpp"
 #include "include/httprequest.hpp"
