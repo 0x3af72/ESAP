@@ -135,8 +135,14 @@
                 let output_list = document.querySelector("#output");
                 output_list.innerHTML = "";
                 for (let instruction_id in data) {
-                    let output_elem = document.createElement("p");
-                    output_elem.textContent = data[instruction_id][1];
+                    let output_elem;
+                    if (data[instruction_id][0] == "ss") {
+                        output_elem = document.createElement("img");
+                        output_elem.setAttribute("src", "data:image/png;base64," + data[instruction_id][1]);
+                    } else {
+                        output_elem = document.createElement("p");
+                        output_elem.textContent = data[instruction_id][1];
+                    }
                     output_list.appendChild(output_elem);
                     // decide how to properly display in the future
                 }
