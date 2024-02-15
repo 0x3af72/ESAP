@@ -4,7 +4,7 @@
 #pragma once
 
 // obfuscation
-#define combine_chars(chars) (std::string(chars))
+#define cs(chars) (std::string(chars))
 
 std::vector<std::string> split_string(std::string str, std::string delim) {
     std::vector<std::string> res;

