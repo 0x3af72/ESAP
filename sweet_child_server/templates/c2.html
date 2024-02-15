@@ -18,11 +18,12 @@
                 let online_list = document.querySelector("#online_users");
                 online_list.innerHTML = "";
                 for (let online_user of data) {
+                    let li_elem = document.createElement("li");
                     let online_elem = document.createElement("a");
                     online_elem.textContent = online_user;
                     online_elem.setAttribute("href", "/control/?u=" + online_user);
-                    online_list.appendChild(online_elem);
-                    // online_list.appendChild(document.createElement("br"));
+                    li_elem.appendChild(online_elem);
+                    online_list.appendChild(li_elem);
                 }
             });
         }
@@ -34,9 +35,12 @@
                 let client_list = document.querySelector("#clients");
                 client_list.innerHTML = "";
                 for (let client of data) {
-                    let client_elem = document.createElement("li");
+                    let li_elem = document.createElement("li");
+                    let client_elem = document.createElement("a");
                     client_elem.textContent = client;
-                    client_list.appendChild(client_elem);
+                    client_elem.setAttribute("href", "/control/?u=" + client);
+                    li_elem.appendChild(client_elem);
+                    client_list.appendChild(li_elem);
                 }
             });
         }

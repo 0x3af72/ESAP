@@ -127,18 +127,28 @@
             });
         }
         function clear_output() {
+            let output_list = document.querySelector("#output");
+            output_list.innerHTML = "";
             fetch("/clear_output/?u={{ u }}");
         }
+        seen_ids = new Set();
         function update_output() {
             fetch("/get_output/?u={{ u }}").then(response => response.json())
             .then(data => {
                 let output_list = document.querySelector("#output");
-                output_list.innerHTML = "";
                 for (let instruction_id in data) {
+                    if (seen_ids.has(instruction_id)) continue;
+                    seen_ids.add(instruction_id);
                     let output_elem;
                     if (data[instruction_id][0] == "ss") {
                         output_elem = document.createElement("img");
-                        output_elem.setAttribute("src", "data:image/png;base64," + data[instruction_id][1]);
+                        output_elem.setAttribute("src", "/static/placeholder.png");
+                        output_elem.setAttribute("other_src", "data:image/png;base64," + data[instruction_id][1])
+                        output_elem.addEventListener("click", () => {
+                            let temp = output_elem.getAttribute("src");
+                            output_elem.setAttribute("src", output_elem.getAttribute("other_src"));
+                            output_elem.setAttribute("other_src", temp);
+                        })
                     } else {
                         output_elem = document.createElement("p");
                         output_elem.textContent = data[instruction_id][1];
