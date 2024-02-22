@@ -1,0 +1,59 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+</head>
+<body>
+    <h1>Welcome to the file explorer</h1>
+    <p>Upload a file</p>
+    <form>
+        <input type="file" name="file" id="file">
+        <br>
+        <button type="submit" onclick="upload_file()">Upload</button>
+    </form>
+    <hr>
+    {% for file in files %}
+    <p>{{ file }}</p>
+    {% endfor %}
+    <hr>
+    <p>Delete a file</p>
+    <form>
+        <input type="text" id="filename">
+        <button onclick="delete_file()">Delete</button>
+    </form>
+    <hr>
+    <a href="/c2">c2 panel</a>
+    <script>
+        for (let button of document.querySelectorAll("button")) {
+            button.addEventListener("click", function(event) {
+                event.preventDefault();
+            });
+        }
+        function delete_file() {
+            let filename = document.querySelector("#filename").value;
+            let form_data = new FormData();
+            form_data.append("filename", filename);
+            form_data.append("type", "delete");
+            fetch("/file_explorer/", {
+                method: "POST",
+                body: form_data
+            }).then(response => {
+                window.location.reload();
+            });
+        }
+        function upload_file() {
+            let file = document.querySelector("#file").files[0];
+            let form_data = new FormData();
+            form_data.append("file", file);
+            form_data.append("type", "upload");
+            fetch("/file_explorer/", {
+                method: "POST",
+                body: form_data
+            }).then(response => {
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
