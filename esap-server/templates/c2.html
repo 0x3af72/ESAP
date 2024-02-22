@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>c2</title>
+</head>
+<body>
+    <h1>welcome to c2</h1>
+    <ul id="clients"></ul>
+    <hr>
+    <h2>online users</h2>
+    <ul id="online_users"></ul>
+    <script>
+        function update_online() {
+            fetch("/online/").then(response => response.json())
+            .then(data => {
+                let online_list = document.querySelector("#online_users");
+                online_list.innerHTML = "";
+                for (let online_user of data) {
+                    let li_elem = document.createElement("li");
+                    let online_elem = document.createElement("a");
+                    online_elem.textContent = online_user;
+                    online_elem.setAttribute("href", "/control/?u=" + online_user);
+                    li_elem.appendChild(online_elem);
+                    online_list.appendChild(li_elem);
+                }
+            });
+        }
+        update_online();
+        setInterval(update_online, 2000);
+        function update_clients() {
+            fetch("/clients/").then(response => response.json())
+            .then(data => {
+                let client_list = document.querySelector("#clients");
+                client_list.innerHTML = "";
+                for (let client of data) {
+                    let li_elem = document.createElement("li");
+                    let client_elem = document.createElement("a");
+                    client_elem.textContent = client;
+                    client_elem.setAttribute("href", "/control/?u=" + client);
+                    li_elem.appendChild(client_elem);
+                    client_list.appendChild(li_elem);
+                }
+            });
+        }
+        update_clients();
+        setInterval(update_clients, 2000);
+    </script>
+</body>
+</html>
