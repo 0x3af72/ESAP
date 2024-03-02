@@ -84,6 +84,23 @@ def file_explorer():
             write_json("files.json", files)
             return ""
 
+@app.route("/upload_temp/", methods=["POST"])
+def upload_temp():
+    if not authenticated():
+        return ""
+    file = request.files["file"]
+    file_id = random_string(32)
+    file.save(f"files/temp_{file_id}.file")
+    return file_id
+
+@app.route("/user_serve_temp/", methods=["GET"])
+def user_serve_temp():
+    if not authenticated():
+        return ""
+    file_id = request.args.get("f")
+    if f"user_temp_{file_id}.file" in os.listdir("files"):
+        return send_file(f"files/user_temp_{file_id}.file", as_attachment=True), os.remove(f"files/user_temp_{file_id}.file")
+
 @app.route("/c2/")
 def c2():
     if not authenticated():
@@ -144,6 +161,23 @@ def download():
     alias = request.args.get("a")
     if f"{alias}.file" in os.listdir("files"):
         return send_file(f"files/{alias}.file", as_attachment=True)
+
+# public: must be secure
+# dangerous: client uploads file to server
+@app.route("/user_upload_temp/", methods=["POST"])
+def user_upload_temp():
+    file_content = request.data
+    file_id = random_string(32)
+    with open(f"files/user_temp_{file_id}.file", "wb") as wb:
+        wb.write(file_content)
+    return file_id
+
+# public: must be secure
+@app.route("/serve_temp/", methods=["GET"])
+def serve_temp():
+    file_id = request.args.get("f")
+    if f"temp_{file_id}.file" in os.listdir("files"):
+        return send_file(f"files/temp_{file_id}.file", as_attachment=True), os.remove(f"files/temp_{file_id}.file")
 
 # public: must be secure
 @app.route("/ESAP/", methods=["GET"])

