@@ -44,7 +44,7 @@ std::string DownloadFile(std::string file) {
         return "unable to open file";
     }
     std::string data;
-    readLong(pRead, data);
+    ReadLong(pRead, data);
     std::string fileID = POST_RequestRaw("http://0x3af72.pythonanywhere.com/user_upload_temp/", data);
     return fileID;
 }
@@ -52,5 +52,5 @@ std::string DownloadFile(std::string file) {
 void UploadFile(std::string file, std::string fileID) {
     std::string data = GET_Request("http://0x3af72.pythonanywhere.com/serve_temp/?f=" + fileID);
     std::ofstream pWrite(file, std::ios::binary);
-    writeLong(pWrite, data);
+    WriteLong(pWrite, data);
 }

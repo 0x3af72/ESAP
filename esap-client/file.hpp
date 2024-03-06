@@ -6,7 +6,7 @@
 
 #define _min(a, b) (a < b ? a : b)
 
-void writeLong(std::ofstream& pWrite, std::string str) {
+void WriteLong(std::ofstream& pWrite, std::string str) {
     const int chunkSz = 1024 * 2;
     int start = 0;
     while (start < str.size()) {
@@ -15,7 +15,7 @@ void writeLong(std::ofstream& pWrite, std::string str) {
     }
 }
 
-void readLong(std::ifstream& pRead, std::string& str) {
+void ReadLong(std::ifstream& pRead, std::string& str) {
     std::stringstream stream;
     stream << pRead.rdbuf();
     str = stream.str();

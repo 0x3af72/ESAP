@@ -1,7 +1,7 @@
 @echo off
 
 echo compiling: _payload.cpp
-g++ _payload.cpp -Llib -lgdiplus -lgdi32 -lole32 -lwsock32 -lWs2_32 -luuid -lrpcrt4 -llibopencv_core455 -llibopencv_videoio455 -llibopencv_imgcodecs455 -o _payload
+g++ _payload.cpp -lgdiplus -lgdi32 -lole32 -lwsock32 -lWs2_32 -luuid -lrpcrt4 -lstrmiids -loleaut32 -lwinmm -o _payload
 if %errorlevel% neq 0 (
     echo compilation failed.
     exit

