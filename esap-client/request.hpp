@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<request.hpp>
+This header contains wrapper functions around elnormous/httprequest.hpp
+
+*/
+
 #include <iostream>
 #include <mutex>
 

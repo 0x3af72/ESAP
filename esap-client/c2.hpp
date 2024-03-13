@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<c2.hpp>
+This header is for important operations with the C2 server, such as getting the UID.
+
+*/
+
 #include <iostream>
 #include <windows.h>
 

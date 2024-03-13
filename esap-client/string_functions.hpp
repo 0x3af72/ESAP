@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<string_functions.hpp>
+This header contains string functions used in ESAP.
+
+*/
+
 #include <iostream>
 #include <vector>
 #include <random>

@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<file.hpp>
+This header contains functions for file IO.
+
+*/
+
 #include <iostream>
 #include <fstream>
 #include <sstream>

